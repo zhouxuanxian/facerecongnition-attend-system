@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yida.admin.mapper.StudentMapper">
+
+<resultMap type="com.yida.admin.bean.Student" id="studentResultMap">  
+    <id property="studentId" column="student_id" />  
+    <result property="studentName" column="student_name" />  
+    <result property="studentClass" column="student_class" />
+    <result property="studentNum" column="student_num" />  
+    <result property="studentId" column="student_id" />  
+     <result property="studentSex" column="student_sex" />
+     <result property="studentPhone" column="student_phone" />    
+     <association property="college" javaType="com.yida.admin.bean.College">
+        <!-- id:声明主键，表示user_id是关联查询对象的唯一标识-->
+        <id property="collegeId" column="college_id" />
+        <result property="collegeName" column="college_name" />
+    </association>
+</resultMap>  
+        <!-- 分页条件查询学生信息 -->
+    <select id="getAll" resultMap="studentResultMap">
+        select s.*,c.* from student as s   
+        left join college as c on c.college_id=s.college_id 
+        where 1=1
+            <if test="studentName !=null and studentName!=''">
+               and s.student_name like '%${studentName}%'
+            </if>
+              <if test="studentClass !=null and studentClass!=''">
+               and s.student_class=#{studentClass}
+            </if>
+            <if test="studentNum !=null and studentNum!=''">
+               and s.student_num=#{studentNum}
+            </if>
+            <if test="collegeId !=null and collegeId!=''">
+               and s.college_id=#{collegeId}
+            </if>
+        order by student_id asc limit  #{startIndex},#{pageSize}
+         
+    </select>
+    <!-- 分页条件查询学生记录总数 -->
+    <select id="count" resultType="int">
+        select count(*) from student as s   
+        left join college as c on c.college_id=s.college_id 
+        where 1=1
+            <if test="studentName !=null and studentName!=''">
+               and s.student_name like '%${studentName}%'
+            </if>
+              <if test="studentClass !=null and studentClass!=''">
+               and s.student_class=#{studentClass}
+            </if>
+            <if test="studentNum !=null and studentNum!=''">
+               and s.student_num=#{studentNum}
+            </if>
+            <if test="collegeId !=null and collegeId!=''">
+               and s.college_id=#{collegeId}
+            </if>
+    </select>
+</mapper>

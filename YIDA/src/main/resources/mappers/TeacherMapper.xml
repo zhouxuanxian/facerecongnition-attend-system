@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yida.admin.mapper.TeacherMapper">
+
+    <select id="getAllTeachers" resultType="com.yida.admin.bean.Teacher">
+        select * from teacher as t
+        where 1=1
+            <if test="teacherName !=null and teacherName!=''">
+               and t.teacher_name like '%${teacherName}%'
+            </if>
+              <if test="teacherNum !=null and teacherNum!=''">
+               and t.teacher_num like '%${teacherNum}%'
+            </if>
+        order by teacher_id asc limit  #{startIndex},#{pageSize}
+         
+    </select>
+</mapper>
+

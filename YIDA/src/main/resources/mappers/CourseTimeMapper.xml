@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yida.admin.mapper.CourseTimeMapper">
+
+
+    <select id="listCourseTime" resultType="com.yida.admin.bean.CourseTime">
+        select * from course_time
+        order by id desc
+        limit  #{startIndex},#{pageSize};
+       
+    </select>
+    
+    <select id="countCourseTime" resultType="int">
+        select count(*) from course_time;
+      
+    </select>
+   
+   
+   
+    
+    
+</mapper>

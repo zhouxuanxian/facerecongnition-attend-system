@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yida.admin.mapper.AttendRecordMapper">
+
+   <insert id="batchInsert" parameterType="java.util.List">
+		insert into student_attend(student_id,teacher_id,course_code,course_time_id,
+		course_place_id,course_room_id,status,create_time,last_update_time)
+		 values
+		<foreach collection="list" item="item" index="index" separator=",">
+		(#{item.studentId},#{item.teacherId},#{item.courseCode},#{item.courseTimeId},
+		#{item.coursePlaceId},#{item.courseRoomId},#{item.status},#{item.createTime},#{item.lastUpdateTime})
+		</foreach>
+	</insert>
+    <!-- 分页条件联表查询考勤记录 -->
+    <select id="selectByPage" resultType="com.yida.admin.bean.AttendRecord">
+       select a.id,a.course_code,a.attend_time,
+       (CASE a.status
+         WHEN 'Y' THEN '已到'
+         WHEN 'N' THEN '缺席'
+		 WHEN 'L' THEN '迟到'
+	     ELSE 'null' END)status,
+		 s.student_name,s.student_class,t.teacher_name,c.course_name,
+		 ct.week,ct.day,ct.node,ct.start_time,ct.end_time,
+		 cp.place,cr.room
+		 from student_attend a
+		 left join student s on s.student_id = a.student_id
+		 left join teacher t on t.teacher_id = a.teacher_id
+		 left join course c on c.course_code = a.course_code
+		 left join course_time ct on ct.id = a.course_time_id
+		 left join course_place cp on cp.id = a.course_place_id
+		 left join course_room cr on cr.id = a.course_room_id
+		 where 1=1
+		     <!-- 判断学生姓名是否为空，支持模糊查询 -->
+            <if test="studentName !=null and studentName!=''">
+               and s.student_name like '%${studentName}%'
+            </if>
+            <!-- 判断教师姓名是否为空，支持模糊查询 -->
+             <if test="teacherName !=null and teacherName!=''">
+               and t.teacher_name like '%${teacherName}%'
+            </if>
+            <!-- 判断课程名称是否为空，支持模糊查询 -->
+             <if test="courseName !=null and courseName !=''">
+               and c.course_name like '%${courseName}%'
+            </if>
+            <!-- 判断课程代码是否为空-->
+             <if test="courseCode !=null and courseCode !=''">
+               and c.course_code = #{courseCode}
+            </if>
+             <if test="attendStatus !=null and attendStatus !=''">
+               and a.status = #{attendStatus}
+            </if>
+            <!-- 查询条件：创建开始时间 -->
+            <if test="startDateTime and startDateTime != '' ">
+                AND a.attend_time &gt;= #{startDateTime}
+            </if>
+            <!-- 查询条件：创建结束时间 -->
+            <if test="endDateTime != null and endDateTime != '' ">
+                AND a.attend_time &lt;= #{endDateTime}
+            </if>
+            order by a.last_update_time desc,a.status desc limit  #{startIndex},#{pageSize}; 
+    </select>
+    
+     <select id="counts" resultType="Int">
+         select count(*)
+         from student_attend a
+         left join student s on s.student_id = a.student_id
+		 left join teacher t on t.teacher_id = a.teacher_id
+		 left join course c on c.course_code = a.course_code
+		 left join course_time ct on ct.id = a.course_time_id
+		 left join course_place cp on cp.id = a.course_place_id
+		 left join course_room cr on cr.id = a.course_room_id
+		where 1=1
+            <if test="studentName !=null and studentName!=''">
+               and s.student_name like '%${studentName}%'
+            </if>
+             <if test="teacherName !=null and teacherName!=''">
+               and t.teacher_name like '%${teacherName}%'
+            </if>
+             <if test="courseName !=null and courseName !=''">
+               and c.course_name like '%${courseName}%'
+            </if>
+             <if test="courseCode !=null and courseCode !=''">
+               and c.course_code = #{courseCode}
+            </if>
+               <!-- 查询条件：创建开始时间 -->
+          <if test="startDateTime and startDateTime != '' ">
+                AND a.attend_time &gt;= #{startDateTime}
+            </if>
+
+            <!-- 查询条件：创建结束时间 -->
+            <if test="endDateTime != null and endDateTime != '' ">
+                AND a.attend_time &lt;= #{endDateTime}
+            </if>
+         
+  
+  
+   </select>
+   
+   <!-- 考勤数据的图表分析sql -->
+     <select id="getCountInfo" resultType="map">
+		   select a.status attendStatus,count(a.status) stautsNumber
+		 from student_attend a
+		 left join student s on s.student_id = a.student_id
+		 left join teacher t on t.teacher_id = a.teacher_id
+		 left join course c on c.course_code = a.course_code
+		 left join course_time ct on ct.id = a.course_time_id
+		 left join course_place cp on cp.id = a.course_place_id
+		 left join course_room cr on cr.id = a.course_room_id
+		 where 1=1 
+		    <!-- 判断学生姓名是否为空，支持模糊查询 -->
+		    <if test="studentName !=null and studentName!=''">
+               and s.student_name like '%${studentName}%'
+            </if>
+            <!-- 判断教师姓名是否为空，支持模糊查询 -->
+             <if test="teacherName !=null and teacherName!=''">
+               and t.teacher_name like '%${teacherName}%'
+            </if>
+              <!-- 判断课程名称是否为空，支持模糊查询 -->
+             <if test="courseName !=null and courseName !=''">
+               and c.course_name like '%${courseName}%'
+            </if>
+              <!-- 判断课程代码是否为空-->
+             <if test="courseCode !=null and courseCode !=''">
+               and a.course_code = #{courseCode}
+            </if>
+              <!-- 判断课程时间是否为空-->
+            <if test="courseTimeId !=null and courseTimeId !=''">
+               and a.course_time_id = #{courseTimeId}
+            </if>
+             <!-- 判断课室号是否为空-->
+            <if test="courseRoomId !=null and courseRoomId !=''">
+               and a.course_room_id = #{courseRoomId}
+            </if>
+             <!-- 判断课程地点是否为空-->
+            <if test="coursePlaceId !=null and coursePlaceId !=''">
+               and a.course_place_id = #{coursePlaceId}
+            </if>
+               <!-- 查询条件：创建开始时间 -->
+          <if test="startDateTime and startDateTime != '' ">
+                AND a.attend_time &gt;= #{startDateTime}
+            </if>
+
+            <!-- 查询条件：创建结束时间 -->
+            <if test="endDateTime != null and endDateTime != '' ">
+                AND a.attend_time &lt;= #{endDateTime}
+            </if>
+		     group by a.status
+    </select>
+    
+    
+</mapper>
